@@ -4,6 +4,7 @@
 typedef struct room {
     int id;
     char name[32];
+    char description[256];
     char map[7][7];
     bool isVisited;
 }room_t;
@@ -11,6 +12,7 @@ typedef struct room {
 typedef struct player {
     char name[32];
     int room;
+    int gold;
     int pos_x;
     int pos_y;
     int health;
@@ -25,7 +27,7 @@ player_t *create_player();
 
 void init_rooms(room_t *rooms[MAX_ROOMS]);
 
-room_t * create_room(int id, char *name, const char map[ROOM_SIZE][ROOM_SIZE]);
+room_t * create_room(int id, const char *name, const char map[ROOM_SIZE][ROOM_SIZE], const char *description);
 
 int game_loop(player_t *player, room_t *rooms[MAX_ROOMS]);
 
@@ -38,3 +40,7 @@ bool can_move(player_t *player, room_t *room, int x, int y);
 void change_room(player_t *player, char room_number);
 
 void textcolor (int color);
+
+int room_color(int room_number);
+
+bool is_dead(player_t *player);

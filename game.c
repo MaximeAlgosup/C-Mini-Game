@@ -8,14 +8,19 @@
 #include "game.h"
 
 // Constants for player
-#define BASE_HEALTH 100
+#define BASE_HEALTH 20
 #define BASE_ATTACK 10
 #define BASE_ROOM 0
+#define BASE_GOLD 0
 #define BASE_POS_X 3
 #define BASE_POS_Y 3
 
 // Constants for game
 #define KEYBOARD_DELAY 100
+#define CHEST '$'
+#define ESC '?'
+#define FOOD 'F'
+#define MOB '+'
 
 // Constants for display
 #define BLACK 0
@@ -40,62 +45,62 @@ const char room_map_0[ROOM_SIZE][ROOM_SIZE] = {
 
 const char room_map_1[ROOM_SIZE][ROOM_SIZE] = {
     {'#', '#', '#', '4', '#', '#', '#'},
-    {'#', '.', '.', '.', '.', '.', '#'},
-    {'#', '.', '.', '.', '.', '.', '#'},
+    {'#', FOOD, '.', '.', '.', '.', '#'},
+    {'#', '#', '#', '#', '#', '.', '#'},
     {'0', '.', '.', '.', '.', '.', '#'},
-    {'#', '.', '.', '.', '.', '.', '#'},
-    {'#', '.', '.', '.', '.', '.', '#'},
+    {'#', '.', '#', '#', '#', '#', '#'},
+    {'#', '.', '.', '.', MOB, CHEST, '#'},
     {'#', '#', '#', '0', '#', '#', '#'}
 };
 
 const char room_map_2[ROOM_SIZE][ROOM_SIZE] = {
     {'#', '#', '#', '#', '#', '#', '#'},
     {'#', '.', '.', '.', '.', '.', '#'},
-    {'#', '.', '.', '.', '.', '.', '#'},
-    {'0', '.', '.', '.', '.', '.', '#'},
-    {'#', '.', '.', '.', '.', '.', '#'},
-    {'#', '.', '.', '.', '.', '.', '#'},
+    {'#', '.', '#', '#', '#', '.', '#'},
+    {'0', '.', '#', '.', '#', FOOD, '#'},
+    {'#', MOB, '#', '.', '#', '.', '#'},
+    {'#', '.', '#', '.', '.', '.', '#'},
     {'#', '#', '#', '#', '#', '#', '#'}
 };
 
 const char room_map_3[ROOM_SIZE][ROOM_SIZE] = {
     {'#', '#', '#', '0', '#', '#', '#'},
     {'#', '.', '.', '.', '.', '.', '#'},
-    {'#', '.', '.', '.', '.', '.', '#'},
-    {'#', '.', '.', '.', '.', '.', '4'},
-    {'#', '.', '.', '.', '.', '.', '#'},
-    {'#', '.', '.', '.', '.', '.', '#'},
+    {'#', '.', '#', '#', '#', '#', '#'},
+    {'#', '.', '.', '.', '#', '.', '4'},
+    {'#', '.', '.', MOB, '.', '.', '#'},
+    {'#', MOB, '.', '.', '.', MOB, '#'},
     {'#', '#', '#', '#', '#', '#', '#'}
 };
 
 const char room_map_4[ROOM_SIZE][ROOM_SIZE] = {
-    {'#', '#', '#', '1', '#', '#', '#'},
-    {'#', '.', '.', '.', '.', '.', '#'},
-    {'#', '.', '.', '.', '.', '.', '#'},
-    {'3', '.', '.', '.', '.', '.', '5'},
-    {'#', '.', '.', '.', '.', '.', '#'},
-    {'#', '.', '.', '.', '.', '.', '#'},
-    {'#', '#', '#', '#', '#', '#', '#'}
+    {'X', 'v', 'v', '1', 'v', 'v', 'X'},
+    {'>', '.', '>', '.', '<', CHEST, '<'},
+    {'>', MOB, '>', '.', '<', '.', '<'},
+    {'3', '.', '.', '.', '<', '.', '5'},
+    {'>', '^', '.', '.', '.', '.', '<'},
+    {'>', CHEST, '>', '.', '.', MOB, '<'},
+    {'X', '^', '^', '^', '^', '^', 'X'}
 };
 
 const char room_map_5[ROOM_SIZE][ROOM_SIZE] = {
-    {'#', '#', '#', '#', '#', '#', '#'},
-    {'#', '.', '.', '.', '.', '.', '#'},
-    {'#', '.', '.', '.', '.', '.', '#'},
-    {'4', '.', '.', '.', '.', '.', '#'},
-    {'#', '.', '.', '.', '.', '.', '#'},
-    {'#', '.', '.', '.', '.', '.', '#'},
-    {'#', '#', '#', '6', '#', '#', '#'}
+    {'O', 'O', 'O', 'O', 'O', 'O', 'O'},
+    {'O', CHEST, '.', '.', 'o', '.', 'O'},
+    {'O', 'o', MOB, 'O', '.', MOB, 'O'},
+    {'4', '.', '.', '.', '.', '.', 'O'},
+    {'O', '.', 'o', 'o', '.', MOB, 'O'},
+    {'O', '.', 'O', '.', '.', '.', 'O'},
+    {'O', 'O', 'O', '6', 'O', 'O', 'O'}
 };
 
 const char room_map_6[ROOM_SIZE][ROOM_SIZE] = {
-    {'#', '#', '#', '5', '#', '#', '#'},
-    {'#', '.', '.', '.', '.', '.', '#'},
-    {'#', '.', '.', '.', '.', '.', '#'},
-    {'#', '.', '.', '.', '.', '.', '#'},
-    {'#', '.', '.', '.', '.', '.', '#'},
-    {'#', '.', '.', '.', '.', '.', '#'},
-    {'#', '#', '#', '#', '#', '#', '#'}
+    {'#', '_', '_', '5', '_', '_', '#'},
+    {'|', '.', '.', '.', '.', '.', '|'},
+    {'|', CHEST, MOB, '.', MOB, CHEST, '|'},
+    {'|', '.', '.', '.', '.', '.', '|'},
+    {'|', '.', '.', MOB, '.', '.', '|'},
+    {'|', '.', MOB, ESC, MOB, '.', '|'},
+    {'#', '_', '_', '_', '_', '_', '#'}
 };
 
 
@@ -106,8 +111,17 @@ int main(){
 }
 
 void game_presentation(){
-    printf("Welcome to PYTHAGORE!\n");
+    textcolor(RED);
+    printf("  ____        _   _                                      \n");
+    printf(" |  _ \\ _   _| |_| |__   __ _  __ _  ___  _ __ __ _ ___ \n");
+    printf(" | |_) | | | | __| '_ \\ / _` |/ _` |/ _ \\| '__/ _` / __|\n");
+    printf(" |  __/| |_| | |_| | | | (_| | (_| | (_) | | | (_| \\__ \\\n");
+    printf(" |_|    \\__, |\\__|_| |_|\\__,_|\\__, |\\___/|_|  \\__,_|___/\n");
+    printf("        |___/                 |___/                     \n");
+    printf("\n");
+    textcolor(WHITE);
     printf("You are in a dark room. You can't see anything.\n");
+    printf("You have to find the exit of the dungeon.\n");
     printf("Good luck!\n");
 }
 
@@ -142,6 +156,7 @@ player_t *create_player(){
     player->room = BASE_ROOM;
     player->pos_x = BASE_POS_X;
     player->pos_y = BASE_POS_Y;
+    player->gold = BASE_GOLD;
     player->health = BASE_HEALTH;
     player->attack = BASE_ATTACK;
 
@@ -155,16 +170,16 @@ void init_rooms(room_t *rooms[MAX_ROOMS]){
         exit(EXIT_FAILURE);
     }
 
-    rooms[0] = create_room(0, "Entrance", room_map_0);
-    rooms[1] = create_room(1, "Kitchen", room_map_1);
-    rooms[2] = create_room(2, "Cellar", room_map_2);
-    rooms[3] = create_room(3, "Room 3", room_map_3);
-    rooms[4] = create_room(4, "Room 4", room_map_4);
-    rooms[5] = create_room(5, "Room 5", room_map_5);
-    rooms[6] = create_room(6, "Boss room", room_map_6);
+    rooms[0] = create_room(0, "Entrance", room_map_0, "You are in the entrance of the dungeon. There are 3 doors in front of you. Choose one.");
+    rooms[1] = create_room(1, "Kitchen", room_map_1, "You are in the kitchen. Only women are allowed in this room.");
+    rooms[2] = create_room(2, "Cellar", room_map_2, "You are in the cellar. Try to find some food.");
+    rooms[3] = create_room(3, "Mob Room", room_map_3, "You are in the mob room. There are some monsters here. Be careful!");
+    rooms[4] = create_room(4, "Coral Cave", room_map_4, "You are in the coral cave. There are some chests here. Try to open them.");
+    rooms[5] = create_room(5, "Bubble Area", room_map_5, "You are in the bubble area.");
+    rooms[6] = create_room(6, "Final Room", room_map_6, "You are almost at the end courage.");
 }
 
-room_t *create_room(int id, char *name,const char map[ROOM_SIZE][ROOM_SIZE]){
+room_t *create_room(int id, const char *name,const char map[ROOM_SIZE][ROOM_SIZE], const char *description){
     room_t *room = malloc(sizeof(room_t));
     if(room == NULL){
         printf("Error allocating memory for room %d\n", id);
@@ -173,7 +188,8 @@ room_t *create_room(int id, char *name,const char map[ROOM_SIZE][ROOM_SIZE]){
 
     room->id = id;
     strcpy(room->name, name);
-    memcpy(room->map, map, sizeof(room->map));
+    memcpy(room->map, map, sizeof(room->map));\
+    strcpy(room->description, description);
     room->isVisited = false;
 
     return room;
@@ -185,25 +201,52 @@ int game_loop(player_t *player, room_t *rooms[MAX_ROOMS]){
         print_room(rooms[player->room], player);
         user_input(player, rooms);
         sleep(0.7);
+        if(is_dead(player)){
+            system("cls");
+            textcolor(RED);
+            printf("You died!\n");
+            textcolor(WHITE);
+            exit(EXIT_SUCCESS);
+        }
     }
     return 0;
 }
 
 void print_room(room_t *room, player_t *player){
     system("cls");
-    printf("Player: %s \t Life: %d\n", player->name, player->health);
+    printf("Player: %s \t Life: %d \t Golds: %d \n", player->name, player->health, player->gold);
     printf("Room: %d \t %s\n", room->id, room->name);
     for(int i = 0; i < ROOM_SIZE; i++){
         for(int j = 0; j < ROOM_SIZE; j++){
+            textcolor(room_color(room->id));
             //check if player is in this position
             if(i == player->pos_x && j == player->pos_y){
                 textcolor(CYAN);
                 printf("@ ");
-                textcolor(WHITE);
                 continue;
             }
             else if(room->map[i][j] == '.' || (room->map[i][j] >= '0' && room->map[i][j] <= '7')){
                 printf("  ");
+                continue;
+            }
+            else if(room->map[i][j] == CHEST){
+                textcolor(YELLOW);
+                printf("%c ", room->map[i][j]);
+                continue;
+            }
+            else if(room->map[i][j] == FOOD){
+                textcolor(GREEN);
+                printf("%c ", room->map[i][j]);
+                continue;
+            }
+            else if(room->map[i][j] == MOB){
+                textcolor(RED);
+                printf("%c ", room->map[i][j]);
+                continue;
+            }
+            else if(room->map[i][j] == ESC){
+                textcolor(PURPLE);
+                printf("%c ", room->map[i][j]);
                 continue;
             }
             else{
@@ -213,6 +256,8 @@ void print_room(room_t *room, player_t *player){
         }
         printf("\n");
     }
+    textcolor(WHITE);
+    printf("%s\n", room->description);
 }
 
 void user_input(player_t *player, room_t *rooms[MAX_ROOMS]){
@@ -258,6 +303,29 @@ bool can_move(player_t *player, room_t *room, int x, int y){
         change_room(player, room->map[x][y]);
         return false;
     }
+    else if(room->map[x][y] == CHEST){
+        player->gold += 10;
+        room->map[x][y] = '.';
+        return true;
+    }
+    else if(room->map[x][y] == FOOD){
+        player->health += 10;
+        room->map[x][y] = '.';
+        return true;
+    }
+    else if(room->map[x][y] == MOB){
+        player->health -= 10;
+        room->map[x][y] = '.';
+        return true;
+    }
+    else if(room->map[x][y] == ESC){
+        system("cls");
+        textcolor(GREEN);
+        printf("Congratulations %s! You escaped from the dungeon!\n", player->name);
+        textcolor(WHITE);
+        exit(EXIT_SUCCESS);
+    }
+    else
     if(room->map[x][y] == '.'){
         return true;
     }
@@ -272,8 +340,7 @@ void change_room(player_t *player, char room_number){
     player->pos_y = BASE_POS_Y;
 }
 
-void textcolor (int color)
-{
+void textcolor (int color){
     char *colorPrefix = "\033[0;30m"; // Black
     switch (color)
     {
@@ -302,4 +369,42 @@ void textcolor (int color)
         break;
     }
     printf("%s", colorPrefix);
+}
+
+int room_color(int room_number){
+    switch (room_number)
+    {
+    case 0:
+        return BLUE;
+        break;
+    case 1:
+        return BLUE;
+        break;
+    case 2:
+        return BLUE;
+        break;
+    case 3:
+        return RED;
+        break;
+    case 4:
+        return PURPLE;
+        break;
+    case 5:
+        return CYAN;
+        break;
+    case 6:
+        return YELLOW;
+        break;
+    default:
+        return BLACK;
+    }
+}
+
+bool is_dead(player_t *player){
+    if(player->health <= 0){
+        return true;
+    }
+    else{
+        return false;
+    }
 }
