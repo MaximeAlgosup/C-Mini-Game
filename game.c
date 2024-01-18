@@ -7,12 +7,26 @@
 #include <time.h>
 #include "game.h"
 
+// Constants for player
 #define BASE_HEALTH 100
 #define BASE_ATTACK 10
 #define BASE_ROOM 0
 #define BASE_POS_X 3
 #define BASE_POS_Y 3
+
+// Constants for game
 #define KEYBOARD_DELAY 100
+
+// Constants for display
+#define BLACK 0
+#define RED 1
+#define GREEN 2
+#define YELLOW 3
+#define BLUE 4
+#define PURPLE 5
+#define CYAN 6
+#define WHITE 7
+
 
 const char room_map_0[ROOM_SIZE][ROOM_SIZE] = {
     {'#', '#', '#', '1', '#', '#', '#'},
@@ -86,27 +100,8 @@ const char room_map_6[ROOM_SIZE][ROOM_SIZE] = {
 
 
 int main(){
-
-
-    game_presentation();
-
-    player_t *player = create_player();
-
-    if (player == NULL){
-        printf("Error creating player\n");
-        exit(EXIT_FAILURE);
-    }
-    // Create rooms array
-    room_t *rooms[MAX_ROOMS];
-    init_rooms(rooms);
-
-    // Print initial room
-    while (true)
-    {
-        print_room(rooms[player->room], player);
-        user_input(player, rooms);
-        sleep(0.7);
-    }
+    system("cls");
+    game_start();
     exit(EXIT_SUCCESS);
 }
 
@@ -114,6 +109,20 @@ void game_presentation(){
     printf("Welcome to PYTHAGORE!\n");
     printf("You are in a dark room. You can't see anything.\n");
     printf("Good luck!\n");
+}
+
+void game_start(){
+    textcolor(WHITE);
+    game_presentation();
+    player_t *player = create_player();
+    room_t *rooms[MAX_ROOMS];
+    init_rooms(rooms);
+    if (player == NULL){
+        printf("Error creating player\n");
+        exit(EXIT_FAILURE);
+    };
+
+    game_loop(player, rooms);
 }
 
 player_t *create_player(){
@@ -170,6 +179,16 @@ room_t *create_room(int id, char *name,const char map[ROOM_SIZE][ROOM_SIZE]){
     return room;
 }
 
+int game_loop(player_t *player, room_t *rooms[MAX_ROOMS]){
+    while (true)
+    {
+        print_room(rooms[player->room], player);
+        user_input(player, rooms);
+        sleep(0.7);
+    }
+    return 0;
+}
+
 void print_room(room_t *room, player_t *player){
     system("cls");
     printf("Player: %s \t Life: %d\n", player->name, player->health);
@@ -178,11 +197,14 @@ void print_room(room_t *room, player_t *player){
         for(int j = 0; j < ROOM_SIZE; j++){
             //check if player is in this position
             if(i == player->pos_x && j == player->pos_y){
-                printf("P ");
+                textcolor(CYAN);
+                printf("@ ");
+                textcolor(WHITE);
                 continue;
             }
             else if(room->map[i][j] == '.' || (room->map[i][j] >= '0' && room->map[i][j] <= '7')){
                 printf("  ");
+                continue;
             }
             else{
                 printf("%c ", room->map[i][j]);
@@ -248,4 +270,36 @@ void change_room(player_t *player, char room_number){
     player->room = (int)(room_number - '0');
     player->pos_x = BASE_POS_X;
     player->pos_y = BASE_POS_Y;
+}
+
+void textcolor (int color)
+{
+    char *colorPrefix = "\033[0;30m"; // Black
+    switch (color)
+    {
+    case 1:
+        colorPrefix = "\033[0;31m"; // Red
+        break;
+    case 2:
+        colorPrefix = "\033[0;32m"; // Green
+        break;
+    case 3:
+        colorPrefix = "\033[0;33m"; // Yellow
+        break;
+    case 4:
+        colorPrefix = "\033[0;34m"; // Blue
+        break;
+    case 5:
+        colorPrefix = "\033[0;35m"; // Purple
+        break;
+    case 6:
+        colorPrefix = "\033[0;36m"; // Cyan
+        break;
+    case 7:
+        colorPrefix = "\033[0;37m"; // White
+        break;
+    default:
+        break;
+    }
+    printf("%s", colorPrefix);
 }
