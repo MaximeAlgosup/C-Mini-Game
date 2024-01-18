@@ -26,3 +26,9 @@ void init_rooms(room_t *rooms[MAX_ROOMS]);
 room_t * create_room(int id, char *name, const char map[ROOM_SIZE][ROOM_SIZE]);
 
 void print_room(room_t *room, player_t *player);
+
+void user_input(player_t *player, room_t *rooms[MAX_ROOMS]);
+
+bool can_move(player_t *player, room_t *room, int x, int y);
+
+void change_room(player_t *player, char room_number);
