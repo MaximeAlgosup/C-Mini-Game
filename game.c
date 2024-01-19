@@ -1,3 +1,5 @@
+/* This file contains the implementation of the game functions */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -122,20 +124,36 @@ void game_presentation(){
     textcolor(WHITE);
     printf("You are in a dark room. You can't see anything.\n");
     printf("You have to find the exit of the dungeon.\n");
+    printf("You can move with the keys 'w', 'a', 's', 'd'.\n");
+    printf("Player is represented by '@'.\n");
+    printf("You can save your game by pressing 'p'.\n");
     printf("Good luck!\n");
 }
 
 void game_start(){
     textcolor(WHITE);
     game_presentation();
-    player_t *player = create_player();
+    player_t *player = malloc(sizeof(player_t));
     room_t *rooms[MAX_ROOMS];
     init_rooms(rooms);
-    if (player == NULL){
-        printf("Error creating player\n");
-        exit(EXIT_FAILURE);
-    };
 
+    // try to load existing game
+    FILE *fp;
+    fp = fopen("save.txt", "r");
+    if(fp == NULL){
+        player = create_player();
+        printf("No save file found. Starting new game...\n");
+        if (player == NULL){
+            printf("Error creating player\n");
+            exit(EXIT_FAILURE);
+        };
+    }
+    else{
+        printf("Save file found. Loading game...\n");
+        load_game(player, rooms);
+    }
+    printf("Game loaded!\n");
+    fclose(fp);
     game_loop(player, rooms);
 }
 
@@ -190,8 +208,6 @@ room_t *create_room(int id, const char *name,const char map[ROOM_SIZE][ROOM_SIZE
     strcpy(room->name, name);
     memcpy(room->map, map, sizeof(room->map));\
     strcpy(room->description, description);
-    room->isVisited = false;
-
     return room;
 }
 
@@ -200,7 +216,7 @@ int game_loop(player_t *player, room_t *rooms[MAX_ROOMS]){
     {
         print_room(rooms[player->room], player);
         user_input(player, rooms);
-        sleep(0.7);
+        sleep(0.8);
         if(is_dead(player)){
             system("cls");
             textcolor(RED);
@@ -291,6 +307,16 @@ void user_input(player_t *player, room_t *rooms[MAX_ROOMS]){
     case 'd':
         if (can_move(player, rooms[player->room], player->pos_x, player->pos_y + 1)){
             player->pos_y++;
+        }
+        break;
+    case 'p':
+        printf("Saving game...\n");
+        int res = save_game(player, rooms);
+        if(res == -1){
+            printf("Error saving game\n");
+        }
+        else{
+            printf("Game saved!\n");
         }
         break;
     default:
@@ -407,4 +433,58 @@ bool is_dead(player_t *player){
     else{
         return false;
     }
+}
+
+int save_game(player_t *player, room_t *rooms[MAX_ROOMS]){
+    FILE *fp;
+    fp = fopen("save.txt", "w");
+    if(fp == NULL){
+        return -1;
+    }
+    fprintf(fp, "%s\n", player->name);
+    fprintf(fp, "%d\n", player->room);
+    fprintf(fp, "%d\n", player->pos_x);
+    fprintf(fp, "%d\n", player->pos_y);
+    fprintf(fp, "%d\n", player->gold);
+    fprintf(fp, "%d\n", player->health);
+    fprintf(fp, "%d\n", player->attack);
+    for(int i = 0; i < MAX_ROOMS; i++){
+        for(int j = 0; j < ROOM_SIZE; j++){
+            for(int k = 0; k < ROOM_SIZE; k++){
+                fprintf(fp, "%c", rooms[i]->map[j][k]);
+            }
+            fprintf(fp, "\n");
+        }
+    }
+    fclose(fp);
+    return 0;
+}
+
+int load_game(player_t *player, room_t *rooms[MAX_ROOMS]){
+    FILE *fp;
+    fp = fopen("save.txt", "r");
+    if(fp == NULL){
+        return -1;
+    }
+    fscanf(fp, "%s", player->name);
+    fscanf(fp, "%d", &player->room);
+    fscanf(fp, "%d", &player->pos_x);
+    fscanf(fp, "%d", &player->pos_y);
+    fscanf(fp, "%d", &player->gold);
+    fscanf(fp, "%d", &player->health);
+    fscanf(fp, "%d", &player->attack);
+    printf("pass\n");
+    for(int i = 0; i < MAX_ROOMS; i++){        
+        for(int j = 0; j < ROOM_SIZE; j++){
+            for(int k = 0; k < ROOM_SIZE; k++){
+                char c = fgetc(fp);
+                if (c == '\n'){
+                    c = fgetc(fp);
+                }
+                rooms[i]->map[j][k] = c;
+            
+            }
+        }
+    }
+    return 0;
 }
