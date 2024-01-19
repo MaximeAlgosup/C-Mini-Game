@@ -1,4 +1,4 @@
-#define MAX_ROOMS 7
+#define MAX_ROOMS 10
 #define ROOM_SIZE 7
 
 typedef struct room {

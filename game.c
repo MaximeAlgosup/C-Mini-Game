@@ -82,14 +82,14 @@ const char room_map_4[ROOM_SIZE][ROOM_SIZE] = {
     {'3', '.', '.', '.', '<', '.', '5'},
     {'>', '^', '.', '.', '.', '.', '<'},
     {'>', CHEST, '>', '.', '.', MOB, '<'},
-    {'X', '^', '^', '^', '^', '^', 'X'}
+    {'X', '^', '^', '8', '^', '^', 'X'}
 };
 
 const char room_map_5[ROOM_SIZE][ROOM_SIZE] = {
     {'O', 'O', 'O', 'O', 'O', 'O', 'O'},
     {'O', CHEST, '.', '.', 'o', '.', 'O'},
     {'O', 'o', MOB, 'O', '.', MOB, 'O'},
-    {'4', '.', '.', '.', '.', '.', 'O'},
+    {'4', '.', '.', '.', '.', '.', '7'},
     {'O', '.', 'o', 'o', '.', MOB, 'O'},
     {'O', '.', 'O', '.', '.', '.', 'O'},
     {'O', 'O', 'O', '6', 'O', 'O', 'O'}
@@ -103,6 +103,36 @@ const char room_map_6[ROOM_SIZE][ROOM_SIZE] = {
     {'|', '.', '.', MOB, '.', '.', '|'},
     {'|', '.', MOB, ESC, MOB, '.', '|'},
     {'#', '_', '_', '_', '_', '_', '#'}
+};
+
+const char room_map_7[ROOM_SIZE][ROOM_SIZE] = {
+    {'#', '_', '_', '9', '_', '_', '#'},
+    {'|', '.', '.', '.', '.', '.', '|'},
+    {'|', CHEST, MOB, '.', MOB, CHEST, '|'},
+    {'5', '.', '.', '.', '.', '.', '8'},
+    {'|', '.', '.', MOB, '.', '.', '|'},
+    {'|', '.', MOB, '.', MOB, '.', '|'},
+    {'#', '_', '_', '7', '_', '_', '#'}
+};
+
+const char room_map_8[ROOM_SIZE][ROOM_SIZE] = {
+    {'O', 'O', 'O', 'O', 'O', 'O', 'O'},
+    {'O', MOB, '.', '.', 'o', CHEST, 'O'},
+    {'O', 'o', MOB, 'O', '.', MOB, 'O'},
+    {'8', '.', '.', '.', '.', '.', '8'},
+    {'O', MOB, 'o', 'o', '.', MOB, 'O'},
+    {'O', CHEST, 'O', '.', '.', '.', 'O'},
+    {'O', 'O', 'O', '4', 'O', 'O', 'O'}
+};
+
+const char room_map_9[ROOM_SIZE][ROOM_SIZE] = {
+    {'#', '#', '#', '0', '#', '#', '#'},
+    {'#', '.', '.', '.', '.', '.', '#'},
+    {'#', '.', '.', '.', '.', '.', '#'},
+    {'0', '.', '.', '.', '.', '.', '0'},
+    {'#', '.', '.', '.', '.', '.', '#'},
+    {'#', '.', '.', '.', '.', '.', '#'},
+    {'#', '#', '#', '0', '#', '#', '#'}
 };
 
 
@@ -195,6 +225,9 @@ void init_rooms(room_t *rooms[MAX_ROOMS]){
     rooms[4] = create_room(4, "Coral Cave", room_map_4, "You are in the coral cave. There are some chests here. Try to open them.");
     rooms[5] = create_room(5, "Bubble Area", room_map_5, "You are in the bubble area.");
     rooms[6] = create_room(6, "Final Room", room_map_6, "You are almost at the end courage.");
+    rooms[7] = create_room(7, "Another Room", room_map_7, "Not here.");
+    rooms[8] = create_room(8, "Bubble Area", room_map_8, "You are in the bubble area.");
+    rooms[9] = create_room(9, "Random Room", room_map_9, "You have been trapped.");
 }
 
 room_t *create_room(int id, const char *name,const char map[ROOM_SIZE][ROOM_SIZE], const char *description){
@@ -241,7 +274,7 @@ void print_room(room_t *room, player_t *player){
                 printf("@ ");
                 continue;
             }
-            else if(room->map[i][j] == '.' || (room->map[i][j] >= '0' && room->map[i][j] <= '7')){
+            else if(room->map[i][j] == '.' || (room->map[i][j] >= '0' && room->map[i][j] <= '9')){
                 printf("  ");
                 continue;
             }
@@ -325,7 +358,7 @@ void user_input(player_t *player, room_t *rooms[MAX_ROOMS]){
 }
 
 bool can_move(player_t *player, room_t *room, int x, int y){
-    if(room->map[x][y] >= '0' && room->map[x][y] <= '7'){
+    if(room->map[x][y] >= '0' && room->map[x][y] <= '9'){
         change_room(player, room->map[x][y]);
         return false;
     }
@@ -420,6 +453,15 @@ int room_color(int room_number){
         break;
     case 6:
         return YELLOW;
+        break;
+    case 7:
+        return BLACK;
+        break;
+    case 8:
+        return PURPLE;
+        break;
+    case 9:
+        return BLUE;
         break;
     default:
         return BLACK;
