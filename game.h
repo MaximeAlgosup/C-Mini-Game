@@ -6,6 +6,7 @@ typedef struct room {
     char name[32];
     char description[256];
     char map[7][7];
+    bool is_mob;
 }room_t;
 
 typedef struct player {
@@ -15,8 +16,16 @@ typedef struct player {
     int pos_x;
     int pos_y;
     int health;
-    int attack;
 }player_t;
+
+typedef struct mob {
+    int room_id;
+    int pos_x1;
+    int pos_y1;
+    int pos_x2;
+    int pos_y2;
+    int tick_counter;
+}mob_t;
 
 /*
     Presentation of the game to the player
@@ -45,15 +54,16 @@ void init_rooms(room_t *rooms[MAX_ROOMS]);
            name - name of the room
            map - map of the room
            description - description of the room
+              is_mob - if there is a mob in the room
 */
-room_t * create_room(int id, const char *name, const char map[ROOM_SIZE][ROOM_SIZE], const char *description);
+room_t * create_room(int id, const char *name, const char map[ROOM_SIZE][ROOM_SIZE], const char *description, bool is_mob);
 
 /*
     Infinite loop of the game
     input: player - player of the game
            rooms[MAX_ROOMS] - array of rooms
 */
-int game_loop(player_t *player, room_t *rooms[MAX_ROOMS]);
+int game_loop(player_t *player, room_t *rooms[MAX_ROOMS], mob_t *mobs[MAX_ROOMS]);
 
 /*
     Display the map of the current room
@@ -116,3 +126,20 @@ int save_game(player_t *player, room_t *rooms[MAX_ROOMS]);
            rooms[MAX_ROOMS] - array of rooms
 */
 int load_game(player_t *player, room_t *rooms[MAX_ROOMS]);
+
+/*
+    Create a new mob
+    input: room_id - id of the room
+           pos_x - x position of the mob
+           pos_y - y position of the mob
+*/
+mob_t *create_mob(int room_id, int pos_x1, int pos_y1, int pos_x2, int pos_y2);
+
+void init_mobs(mob_t *mobs[MAX_ROOMS]);
+
+/*
+    Move mob in the room
+    input: room - current room
+           mobs[MAX_ROOMS] - array of mobs
+*/
+void move_mobs(room_t *room, mob_t *mobs[MAX_ROOMS]);

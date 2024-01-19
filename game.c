@@ -11,7 +11,6 @@
 
 // Constants for player
 #define BASE_HEALTH 20
-#define BASE_ATTACK 10
 #define BASE_ROOM 0
 #define BASE_GOLD 0
 #define BASE_POS_X 3
@@ -19,6 +18,8 @@
 
 // Constants for game
 #define KEYBOARD_DELAY 100
+#define LOOP_TIME 0.7
+#define MOB_TICK 5
 #define CHEST '$'
 #define ESC '?'
 #define FOOD 'F'
@@ -165,7 +166,9 @@ void game_start(){
     game_presentation();
     player_t *player = malloc(sizeof(player_t));
     room_t *rooms[MAX_ROOMS];
+    mob_t *mobs[MAX_ROOMS];
     init_rooms(rooms);
+    init_mobs(mobs);
 
     // try to load existing game
     FILE *fp;
@@ -184,7 +187,7 @@ void game_start(){
     }
     printf("Game loaded!\n");
     fclose(fp);
-    game_loop(player, rooms);
+    game_loop(player, rooms, mobs);
 }
 
 player_t *create_player(){
@@ -206,31 +209,28 @@ player_t *create_player(){
     player->pos_y = BASE_POS_Y;
     player->gold = BASE_GOLD;
     player->health = BASE_HEALTH;
-    player->attack = BASE_ATTACK;
-
     return player;
 }
 
 void init_rooms(room_t *rooms[MAX_ROOMS]){
-    printf("Initializing rooms...\n");
     if(rooms == NULL){
         printf("Error allocating memory for rooms\n");
         exit(EXIT_FAILURE);
     }
 
-    rooms[0] = create_room(0, "Entrance", room_map_0, "You are in the entrance of the dungeon. There are doors in front of you. Choose one.");
-    rooms[1] = create_room(1, "Kitchen", room_map_1, "You are in the kitchen. Only women are allowed in this room.");
-    rooms[2] = create_room(2, "Cellar", room_map_2, "You are in the cellar. Try to find some food.");
-    rooms[3] = create_room(3, "Mob Room", room_map_3, "You are in the mob room. There are some monsters here. Be careful!");
-    rooms[4] = create_room(4, "Coral Cave", room_map_4, "You are in the coral cave. There are some chests here. Try to open them.");
-    rooms[5] = create_room(5, "Bubble Area", room_map_5, "You are in the bubble area.");
-    rooms[6] = create_room(6, "Final Room", room_map_6, "You are almost at the end courage.");
-    rooms[7] = create_room(7, "Another Room", room_map_7, "Not here.");
-    rooms[8] = create_room(8, "Bubble Area", room_map_8, "You are in the bubble area.");
-    rooms[9] = create_room(9, "Random Room", room_map_9, "You have been trapped.");
+    rooms[0] = create_room(0, "Entrance", room_map_0, "You are in the entrance of the dungeon. There are doors in front of you. Choose one.", false);
+    rooms[1] = create_room(1, "Kitchen", room_map_1, "You are in the kitchen. Only women are allowed in this room.", true);
+    rooms[2] = create_room(2, "Cellar", room_map_2, "You are in the cellar. Try to find some food.", true);
+    rooms[3] = create_room(3, "Mob Room", room_map_3, "You are in the mob room. There are some monsters here. Be careful!", true);
+    rooms[4] = create_room(4, "Coral Cave", room_map_4, "You are in the coral cave. There are some chests here. Try to open them.", true);
+    rooms[5] = create_room(5, "Bubble Area", room_map_5, "You are in the bubble area.", true);
+    rooms[6] = create_room(6, "Final Room", room_map_6, "You are almost at the end courage.", true);
+    rooms[7] = create_room(7, "Another Room", room_map_7, "Not here.", true);
+    rooms[8] = create_room(8, "Bubble Area", room_map_8, "You are in the bubble area.", true);
+    rooms[9] = create_room(9, "Random Room", room_map_9, "You have been trapped.", false);
 }
 
-room_t *create_room(int id, const char *name,const char map[ROOM_SIZE][ROOM_SIZE], const char *description){
+room_t *create_room(int id, const char *name,const char map[ROOM_SIZE][ROOM_SIZE], const char *description, bool is_mob){
     room_t *room = malloc(sizeof(room_t));
     if(room == NULL){
         printf("Error allocating memory for room %d\n", id);
@@ -241,15 +241,18 @@ room_t *create_room(int id, const char *name,const char map[ROOM_SIZE][ROOM_SIZE
     strcpy(room->name, name);
     memcpy(room->map, map, sizeof(room->map));\
     strcpy(room->description, description);
+    room->is_mob = is_mob;
+
     return room;
 }
 
-int game_loop(player_t *player, room_t *rooms[MAX_ROOMS]){
+int game_loop(player_t *player, room_t *rooms[MAX_ROOMS], mob_t *mobs[MAX_ROOMS]){
     while (true)
     {
         print_room(rooms[player->room], player);
         user_input(player, rooms);
-        sleep(0.8);
+        sleep(LOOP_TIME);
+        move_mobs(rooms[player->room], mobs);
         if(is_dead(player)){
             system("cls");
             textcolor(RED);
@@ -291,6 +294,13 @@ void print_room(room_t *room, player_t *player){
             else if(room->map[i][j] == MOB){
                 textcolor(RED);
                 printf("%c ", room->map[i][j]);
+                FILE *fp = fopen("test.txt", "a");
+                if(fp == NULL){
+                    printf("Error opening file\n");
+                    exit(EXIT_FAILURE);
+                }
+                fprintf(fp, "x = %d, y = %d\n", i, j);
+                fclose(fp);
                 continue;
             }
             else if(room->map[i][j] == ESC){
@@ -489,7 +499,6 @@ int save_game(player_t *player, room_t *rooms[MAX_ROOMS]){
     fprintf(fp, "%d\n", player->pos_y);
     fprintf(fp, "%d\n", player->gold);
     fprintf(fp, "%d\n", player->health);
-    fprintf(fp, "%d\n", player->attack);
     for(int i = 0; i < MAX_ROOMS; i++){
         for(int j = 0; j < ROOM_SIZE; j++){
             for(int k = 0; k < ROOM_SIZE; k++){
@@ -514,8 +523,6 @@ int load_game(player_t *player, room_t *rooms[MAX_ROOMS]){
     fscanf(fp, "%d", &player->pos_y);
     fscanf(fp, "%d", &player->gold);
     fscanf(fp, "%d", &player->health);
-    fscanf(fp, "%d", &player->attack);
-    printf("pass\n");
     for(int i = 0; i < MAX_ROOMS; i++){        
         for(int j = 0; j < ROOM_SIZE; j++){
             for(int k = 0; k < ROOM_SIZE; k++){
@@ -529,4 +536,68 @@ int load_game(player_t *player, room_t *rooms[MAX_ROOMS]){
         }
     }
     return 0;
+}
+
+mob_t *create_mob(int room_id, int pos_x1, int pos_y1, int pos_x2, int pos_y2){
+    mob_t *mob = malloc(sizeof(mob_t));
+    if(mob == NULL){
+        printf("Error allocating memory for mob\n");
+        exit(EXIT_FAILURE);
+    }
+    mob->room_id = room_id;
+    mob->pos_x1 = pos_x1;
+    mob->pos_y1 = pos_y1;
+    mob->pos_x2 = pos_x2;
+    mob->pos_y2 = pos_y2;
+    mob->tick_counter = 0;
+
+    return mob;
+}
+
+void init_mobs(mob_t *mobs[MAX_ROOMS]){
+    if(mobs == NULL){
+        printf("Error allocating memory for mobs\n");
+        exit(EXIT_FAILURE);
+    }
+
+    mobs[0] = NULL;
+    mobs[1] = create_mob(1, 3, 5, 4, 5);
+    mobs[2] = create_mob(2, 1, 3, 1, 4);
+    mobs[3] = create_mob(3, 3, 4, 3, 5);
+    mobs[4] = create_mob(4, 1, 2, 1, 3);
+    mobs[5] = NULL;
+    mobs[6] = NULL;
+    mobs[7] = create_mob(7, 2, 2, 3, 2);
+    mobs[8] = create_mob(8, 1, 3, 1, 4);
+    mobs[9] = NULL;
+}
+
+void move_mobs(room_t *room, mob_t *mobs[MAX_ROOMS]){
+    if(mobs[room->id] == NULL){
+        return;
+    }
+    else{
+        if(room->map[mobs[room->id]->pos_y1][mobs[room->id]->pos_x1] == MOB){
+            if(mobs[room->id]->tick_counter == MOB_TICK){
+                mobs[room->id]->tick_counter = 0;
+                room->map[mobs[room->id]->pos_y1][mobs[room->id]->pos_x1] = '.';
+                room->map[mobs[room->id]->pos_y2][mobs[room->id]->pos_x2] = MOB;
+          
+            }
+            else{
+                mobs[room->id]->tick_counter++;
+            }
+        }
+        else if(room->map[mobs[room->id]->pos_y2][mobs[room->id]->pos_x2] == MOB){
+            if(mobs[room->id]->tick_counter == MOB_TICK){
+                mobs[room->id]->tick_counter = 0;
+                room->map[mobs[room->id]->pos_y1][mobs[room->id]->pos_x1] = MOB;
+                room->map[mobs[room->id]->pos_y2][mobs[room->id]->pos_x2] = '.';
+          
+            }
+            else{
+                mobs[room->id]->tick_counter++;
+            }
+        }
+    }
 }
