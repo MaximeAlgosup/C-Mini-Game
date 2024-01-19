@@ -18,7 +18,7 @@
 
 // Constants for game
 #define KEYBOARD_DELAY 100
-#define LOOP_TIME 0.7
+#define LOOP_TIME 0.9
 #define MOB_TICK 5
 #define CHEST '$'
 #define ESC '?'
