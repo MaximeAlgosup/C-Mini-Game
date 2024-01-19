@@ -170,7 +170,7 @@ void init_rooms(room_t *rooms[MAX_ROOMS]){
         exit(EXIT_FAILURE);
     }
 
-    rooms[0] = create_room(0, "Entrance", room_map_0, "You are in the entrance of the dungeon. There are 3 doors in front of you. Choose one.");
+    rooms[0] = create_room(0, "Entrance", room_map_0, "You are in the entrance of the dungeon. There are doors in front of you. Choose one.");
     rooms[1] = create_room(1, "Kitchen", room_map_1, "You are in the kitchen. Only women are allowed in this room.");
     rooms[2] = create_room(2, "Cellar", room_map_2, "You are in the cellar. Try to find some food.");
     rooms[3] = create_room(3, "Mob Room", room_map_3, "You are in the mob room. There are some monsters here. Be careful!");
